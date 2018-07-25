@@ -35,4 +35,3 @@ func main() {
 
 	thisthing.doSomething("thingthathingthingthing")
 }
-

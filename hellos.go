@@ -1,4 +1,5 @@
 package main
+
 // https://gobyexample.com/
 
 import (

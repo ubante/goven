@@ -10,9 +10,9 @@ type Citizens struct {
 }
 
 type Person struct {
-	Name string
-	Address Address
-	nextPerson *Person
+	Name           string
+	Address        Address
+	nextPerson     *Person
 	previousPerson *Person
 }
 
@@ -45,7 +45,7 @@ func Sqrt(x float64) float64 {
 	//diff := 1000000.0
 	//for i := 1; diff > 0.001; i++ {
 	for i := 1; i <= 10; i++ {
-		diff := (z*z - x) / (2*z)
+		diff := (z*z - x) / (2 * z)
 		z -= diff
 		// fmt.Println("z = ", z)
 		fmt.Printf("%d: diff = %g, z = %g\n", i, diff, z)
@@ -55,12 +55,11 @@ func Sqrt(x float64) float64 {
 }
 
 type Things struct {
-	intList []int
+	intList    []int
 	stringList []string
 }
 
 func main() {
-
 
 	//var b B
 	//b.Read()
@@ -93,7 +92,6 @@ func main() {
 	//var things Things
 	//things.intList := [4, 3, 4]
 
-
 	fmt.Println("======================================")
 	// https://blog.golang.org/slices
 	// Create a couple of starter slices.
@@ -122,6 +120,5 @@ func main() {
 	//var s []byte
 	//s = make([]byte, 5, 5)
 	// s == []byte{0, 0, 0, 0, 0}
-
 
 }
