@@ -7,5 +7,5 @@ import (
 
 func main() {
 	fmt.Println("Testing the logs.")
-	log15.Infof("Initialized standard Muse client for")
+	log15.Info("Infof doesn't work on desktop... hrm")
 }

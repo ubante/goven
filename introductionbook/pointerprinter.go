@@ -63,10 +63,16 @@ func main() {
 	c.incDriver()
 	fmt.Println(c.members[0].name, "has these numbers:", c.members[0].number)
 	c.incDriver()
-	fmt.Println(c.members[0].name, "has these numbers:", c.members[0].number)
-	c.incDriver()
-	fmt.Println(c.members[0].name, "has these numbers:", c.members[0].number)
-	c.incDriver()
-	fmt.Println(c.members[0].name, "has these numbers:", c.members[0].number)
+
+	dp1 := &d
+	dp2 := dp1
+	fmt.Println("dp1 is", dp1.name)
+	fmt.Println("dp2 is", dp2.name)
+
+	d2 := Dude{"Amaryllis", 80}
+	dp2 = &d2
+	fmt.Println("dp1 is", dp1.name)
+	fmt.Println("dp2 is", dp2.name)
+
 
 }
