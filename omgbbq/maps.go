@@ -1,6 +1,9 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"sort"
+)
 
 type Dinosaur struct {
 	name string
@@ -35,6 +38,88 @@ func (drm DinosaurReferenceManual) String() string {
 func (drm *DinosaurReferenceManual) add(d *Dinosaur) {
 	drm.totalLength += d.length
 	drm.farm[d] = d.length
+}
+
+func (drm *DinosaurReferenceManual) invertMap() map[int][]*Dinosaur {
+	inv := make(map[int][]*Dinosaur)
+
+	for dino, length := range drm.farm {
+		inv[length] = append(inv[length], dino)
+	}
+
+	return inv
+}
+
+func dinoMain() {
+	dino1 := Dinosaur{"Deeno", 1}
+	dino2 := Dinosaur{"Ross", 2}
+
+	dinoPot := NewDInosaurReferenceManual()
+	dinoPot.add(&dino1)
+	dinoPot.add(&dino2)
+	dinoPot.add(&Dinosaur{"Trex", 2})
+	dinoPot.add(&Dinosaur{"Alysaur", 2})
+	dinoPot.add(&Dinosaur{"Steg", 2})
+	dinoPot.add(&Dinosaur{"Mega", 3})
+
+	fmt.Println("\nThe Dino Pot:")
+	fmt.Println(dinoPot)
+
+	invertedMap := dinoPot.invertMap()
+	fmt.Println(invertedMap)
+
+	// https://stackoverflow.com/questions/23330781/sort-go-map-values-by-keys
+	var sortedLengths []int
+	for length := range invertedMap {
+		sortedLengths = append(sortedLengths, length)
+	}
+	sort.Ints(sortedLengths)
+
+	for _, length := range sortedLengths {
+		fmt.Printf("%d: ", length)
+		var names []string
+		for _, element := range invertedMap[length] {
+			names = append(names, element.name)
+		}
+		sort.Strings(names)
+		for _, name := range names {
+			fmt.Printf("%s, ", name)
+		}
+		fmt.Println()
+	}
+/*
+1: Deeno,
+2: Alysaur, Ross, Steg, Trex,
+3: Mega,
+ */
+
+	// This is sorted by length but the names are not sorted.
+	//for _, length := range sortedLengths {
+	//	fmt.Printf("%d: ", length)
+	//	for _, element := range invertedMap[length] {
+	//		fmt.Printf("%s, ", element.name)
+	//	}
+	//	fmt.Println()
+	//}
+/*
+1: Deeno,
+2: Ross, Trex, Alysaur, Steg,
+3: Mega,
+ */
+
+	//This is not sorted by length.
+	//for length, list := range invertedMap {
+	//	fmt.Printf("%d: ", length)
+	//	for _, element := range list {
+	//		fmt.Printf("%s, ", element.name)
+	//	}
+	//	fmt.Println()
+	//}
+/*
+2: Trex, Alysaur, Steg, Ross,
+3: Mega,
+1: Deeno,
+ */
 }
 
 // https://play.golang.org/p/U67R66Oab8r
@@ -81,15 +166,7 @@ func main() {
 	n := map[string]int{"foo": 1, "bar": 2}
 	fmt.Println("map:", n)
 
-	dino1 := Dinosaur{"Deeno", 1}
-	dino2 := Dinosaur{"Ross", 2}
-
-	dinoPot := NewDInosaurReferenceManual()
-	dinoPot.add(&dino1)
-	dinoPot.add(&dino2)
-
-	fmt.Println("\nThe Dino Pot:")
-	fmt.Println(dinoPot)
+	dinoMain()
 }
 
 /**
