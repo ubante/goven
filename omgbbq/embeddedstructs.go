@@ -25,16 +25,23 @@ type Lifeform struct {
 	kingdom string
 }
 
-type Cat struct {
+type Bugger struct {
 	Lifeform
 	name string
 }
 
 func main() {
+	tiger := Bugger{
+		name: "Tiger",
+		Lifeform: Lifeform{
+			kingdom: "AnimalKindom",
+		},
+	}
+	fmt.Println(tiger.name, "is of the", tiger.kingdom)
 
-	bugger := Cat{name: "Sylvester"}
+	bugger := Bugger{name: "Sylvester"}
 	bugger.kingdom = "Animale"
-	fmt.Println("Cat's name is", bugger.name)
+	fmt.Println("Bugger's name is", bugger.name)
 	fmt.Printf("%s is a %s\n", bugger.name, bugger.kingdom)
 
 	aA := A{""}
