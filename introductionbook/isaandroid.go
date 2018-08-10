@@ -1,8 +1,10 @@
 package main
 
-import (
-	"fmt"
-)
+import "fmt"
+
+// This creates a base class, subclass and interface.  And shows
+// that you can create a slice of the interface.
+
 
 type Humanoid struct {
 	name string
@@ -48,7 +50,11 @@ type Speaker interface {
 }
 
 func anonymizeName(h *Humanoid) {
-	h.name = "random"
+	h.name = "new-random-name"
+}
+
+type Platoon struct {
+
 }
 
 func main() {
@@ -79,9 +85,9 @@ func main() {
 		},
 		model: "Bizarro",
 	}
-	fmt.Printf("\n%s weighs %i lb and is a %s model.\n\n", fred.name, fred.weight, fred.model)
+	fmt.Printf("\n%s weighs %d lb and is a %s model.\n\n", fred.name, fred.weight, fred.model)
 
-	cylonArmy := []Eater{
+	cyclonSquad := []Eater{
 		Humanoid{
 			name: "Edith",
 			weight: 110,
@@ -94,13 +100,33 @@ func main() {
 	    },
 	}
 
-	for i, humanoid := range cylonArmy {
-		fmt.Println(i, ":", humanoid)
+	cyclonSquad = append(cyclonSquad, *h)
+	cyclonSquad = append(cyclonSquad, *a)
+	cyclonSquad = append(cyclonSquad, c)
+	for i, humanoid := range cyclonSquad {
+		fmt.Println(i+1, ":", humanoid)
 
 		// The below is an error because the Eater interface does not have a name field.
 		//fmt.Println(i, ":", humanoid.name)
 		humanoid.eat("apples")
 	}
 
-
 }
+
+/*
+George says: blah blah blah
+random says: blah blah blah
+random eats a banana
+
+R2 says: blah blah blah
+
+C3 says: blah blah blah
+C3 is an android.  Stop trying to feed it.
+
+Fred weighs %!i(int=560) lb and is a Bizarro model.
+
+0 : {Edith 110}
+Edith eats a apples
+1 : {{Annie 623} notacylon}
+Annie is an android.  Stop trying to feed it.
+ */
