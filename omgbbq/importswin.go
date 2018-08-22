@@ -1,4 +1,4 @@
-package biznatch
+package main
 
 import "fmt"
 
