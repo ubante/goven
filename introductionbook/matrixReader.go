@@ -11,7 +11,7 @@ import (
 
 func read1() {
 	fmt.Println("FIRST APPROACH")
-	filename := "poker/holeCardValues_SklanskyMalmuth.txt"
+	filename := "poker/matrix/holeCardValues_SklanskyMalmuth.txt"
 	file, err := os.Open(filename)
 	if err != nil {
 		fmt.Println("Error opening file:", filename)
@@ -39,7 +39,7 @@ func read1() {
 
 func read2() {
 	fmt.Println("SECOND APPROACH")
-	filename := "poker/holeCardValues_SklanskyMalmuth.txt"
+	filename := "poker/matrix/holeCardValues_SklanskyMalmuth.txt"
 	byteSize, err := ioutil.ReadFile(filename)
 	if err != nil {
 		fmt.Println("Error with ReadFile:", filename)
@@ -53,8 +53,7 @@ func read2() {
 // https://stackoverflow.com/questions/5884154/read-text-file-into-string-array-and-write
 func read3() {
 	fmt.Println("THIRD APPROACH")
-	//filename := "poker/holeCardValues_SklanskyMalmuth.txt"
-	filename := "poker/holeCardValues_SklanskyMalmuthModified.txt"
+	filename := "poker/matrix/holeCardValues_SklanskyMalmuthModified.txt"
 	file, err := os.Open(filename)
 	if err != nil {
 		fmt.Println("Error opening file:", filename)
@@ -73,19 +72,19 @@ func read3() {
 	// https://stackoverflow.com/questions/44305617/nested-maps-in-golang
 	var smMap = map[string]map[string]int{
 		// How to do this better?
-		"A": map[string]int{},
-		"K": map[string]int{},
-		"Q": map[string]int{},
-		"J": map[string]int{},
-		"T": map[string]int{},
-		"9": map[string]int{},
-		"8": map[string]int{},
-		"7": map[string]int{},
-		"6": map[string]int{},
-		"5": map[string]int{},
-		"4": map[string]int{},
-		"3": map[string]int{},
-		"2": map[string]int{},
+		"A": {},
+		"K": {},
+		"Q": {},
+		"J": {},
+		"T": {},
+		"9": {},
+		"8": {},
+		"7": {},
+		"6": {},
+		"5": {},
+		"4": {},
+		"3": {},
+		"2": {},
 	}
 	//fmt.Println("smMap:")
 	//fmt.Println(smMap)
