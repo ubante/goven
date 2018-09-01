@@ -7,8 +7,6 @@ import (
 
 // This is similar to python's itertools.combinations()
 // https://play.golang.org/p/KS6TcIafc3
-
-
 func generate(alphabet string) <-chan string {
 	c := make(chan string, len(alphabet))
 
@@ -120,9 +118,9 @@ func main() {
 	// Make sure the alphabet is sorted.
 	const alphabet = "abcde"
 
-	//for str := range generate(alphabet) {
-	//	fmt.Println(str)
-	//}
+	for str := range generate(alphabet) {
+		fmt.Println(str)
+	}
 
 	cards := []string{"a1", "b2", "c3", "e4", "d5", "f6", "g7"}
 	fmt.Println(cards)
