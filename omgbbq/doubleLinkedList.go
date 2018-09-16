@@ -12,9 +12,30 @@ type Thing struct {
 	post *Thing
 }
 
+type SubThing struct {
+	Thing
+}
+
 type AllTheThings struct {
 	things []*Thing
 }
+
+//func (att *AllTheThings) addToEnd(t *Thing) {
+//	fmt.Println("Adding:", t.name)
+//
+//	if len(att.things) == 0 {
+//		att.things = append(att.things, t)
+//		return
+//	}
+//
+//	fmt.Println("Appending:", t.name)
+//	last := len(att.things)-1
+//	att.things[last].post = t
+//	t.pre = att.things[last]
+//	t.post = att.things[0]
+//	att.things[0].pre = t
+//	att.things = append(att.things, t)
+//}
 
 func (att *AllTheThings) addToEnd(t *Thing) {
 	fmt.Println("Adding:", t.name)
@@ -134,7 +155,38 @@ func main() {
 		//fmt.Println(i, thing.name)
 		fmt.Printf("%d:              %s <- %s -> %s\n", i, thing.pre.name, thing.name, thing.post.name)
 		fmt.Printf("%p <- %p -> %p\n", thing.pre, thing, thing.post)
+
+/*
+Adding: T1
+Adding: T2
+Appending: T2
+Adding: T4
+Appending: T4
+Adding: T5
+Appending: T5
+T1 -> T2 -> T4 -> T5
+T1 <- T5 <- T4 <- T2
+Adding to position 2
+T1 -> T2 -> T3 -> T4 -> T5
+T1 <- T5 <- T4 <- T3 <- T2
+0:              T5 <- T1 -> T2
+0xc0420024c0 <- 0xc042002420 -> 0xc042002460
+1:              T1 <- T2 -> T3
+0xc042002420 <- 0xc042002460 -> 0xc0420024e0
+2:              T2 <- T3 -> T4
+0xc042002460 <- 0xc0420024e0 -> 0xc042002480
+3:              T3 <- T4 -> T5
+0xc0420024e0 <- 0xc042002480 -> 0xc0420024c0
+4:              T4 <- T5 -> T1
+0xc042002480 <- 0xc0420024c0 -> 0xc042002420
+ */
 	}
+
+	//subAll := AllTheThings{nil}
+	//s1 := SubThing{Thing{"S1", nil, nil}}
+	//subAll.addToEnd(s1)
+	//s2 := SubThing{Thing{"S2", nil, nil}}
+	//subAll.addToEnd(s2)
 
 	fmt.Println("==================")
 	a := Thing{"A", nil, nil}
