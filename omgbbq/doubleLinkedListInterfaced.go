@@ -164,6 +164,16 @@ func main() {
 	t5 := Thang{"T5", nil, nil}
 	all.addToEnd(&t5)
 
+	for i, aThang := range all.thangs {
+		thang := *aThang
+		pre := *thang.getPre()
+		post := *thang.getPost()
+		fmt.Println(i, thang.getPre(), aThang, thang.getPost())
+		fmt.Printf("        %s           %s          %s\n", pre.getName(), thang.getName(), post.getName())
+	}
+
+	os.Exit(3	)
+
 	all.printLinkList(false, nil)
 	//all.printLinkList(true, nil)
 	//
@@ -171,7 +181,7 @@ func main() {
 	//all.insert(2, &t3)
 	//all.printLinkList(false, nil)
 	//all.printLinkList(true, nil)
-
+	//
 	//for i, thang := range all.thangs {
 	//	//fmt.Println(i, thang.name)
 	//	fmt.Printf("%d:              %s <- %s -> %s\n", i, thang.pre.name, thang.name, thang.post.name)
