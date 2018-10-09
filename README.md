@@ -4,10 +4,6 @@ Go oven
 # output
 
 <pre>
-GOROOT=C:\Go #gosetup
-GOPATH=C:\Users\condo\go #gosetup
-C:\Go\bin\go.exe build -i -o C:\Users\condo\AppData\Local\Temp\___go_build_model_go.exe C:/Users/condo/go/src/goven/poker/model.go #gosetup
-"C:\Program Files\JetBrains\GoLand 2018.1.3\bin\runnerw.exe" C:\Users\condo\AppData\Local\Temp\___go_build_model_go.exe #gosetup
 CURRENT PLAYER: Adam > Bert > Adam
 CURRENT PLAYER: Bert > Cail > Adam
 CURRENT PLAYER: Cail > Dale > Adam

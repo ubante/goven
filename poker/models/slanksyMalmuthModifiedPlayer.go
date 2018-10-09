@@ -9,17 +9,17 @@ import (
 // This player will go all-in if their hold cards are at a certain
 // Sklansky-Malmuth score.
 // https://en.wikipedia.org/wiki/Texas_hold_%27em_starting_hands#Sklansky_hand_groups
-type SlanksyMalmuthPlayer struct {
+type SlanksyMalmuthModifiedPlayer struct {
 	GenericPlayer
 	threshold int  // Lesser values are better.
 }
 
-func NewSklanskyMalmuthPlayer(name string, level int) SlanksyMalmuthPlayer {
+func NewSklanskyMalmuthModifiedPlayer(name string, level int) SlanksyMalmuthModifiedPlayer {
 	ecs := NewCardSet()
 	hc := HoleCards{cardSet: &ecs}
 	initialStack := 1000 // dollars
 
-	newPlayer := new(SlanksyMalmuthPlayer)
+	newPlayer := new(SlanksyMalmuthModifiedPlayer)
 	newPlayer.name = name
 	newPlayer.holeCards = hc
 	newPlayer.stack = initialStack
@@ -28,7 +28,7 @@ func NewSklanskyMalmuthPlayer(name string, level int) SlanksyMalmuthPlayer {
 	return *newPlayer
 }
 
-func (smp *SlanksyMalmuthPlayer) chooseAction(t *Table) {
+func (smp *SlanksyMalmuthModifiedPlayer) chooseAction(t *Table) {
 	if smp.hasFolded {
 		fmt.Println("I have already folded so no action.  How did this codepath happen btw?.")
 		os.Exit(4)
@@ -37,7 +37,7 @@ func (smp *SlanksyMalmuthPlayer) chooseAction(t *Table) {
 
 	if t.bettingRound == "PREFLOP" {
 		// Check the SM score of hole cards to decide what to do.
-		smScore := matrix.GetSMScore()
+		smScore := matrix.GetSMModifiedScore()
 		hcScore := smScore.GetScoreOfHoleCardStrings(smp.holeCards.cardSet.cards[0].ToString(),
 			smp.holeCards.cardSet.cards[1].ToString())
 		if hcScore > smp.threshold {

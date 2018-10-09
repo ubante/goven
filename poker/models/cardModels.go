@@ -5,6 +5,7 @@ import (
 	"math/rand"
 	"sort"
 	"strconv"
+	"os"
 )
 
 type Card struct {
@@ -161,6 +162,14 @@ func (cs CardSet) GetReverseOrderedNumericRanks() []int {
 	return orderedRanks
 }
 
+func (cs CardSet) isEmpty() bool {
+	if len(cs.cards) == 0 {
+		return true
+	}
+
+	return false
+}
+
 /*
 Primary ranks are:
   9: Straight flush
@@ -208,6 +217,29 @@ func (e Evaluation) String() string {
 	return toString
 }
 
+func decodeEvaluationPrimaryRank(rank int) string {
+	switch rank {
+	case 9:
+		return "straight flush"
+	case 8:
+		return "four of a kind"
+	case 7:
+		return "full house"
+	case 6:
+		return "flush"
+	case 5:
+		return "straight"
+	case 4:
+		return "three of a kind"
+	case 3:
+		return "two pair"
+	case 2:
+		return "one pair"
+	default:
+		return "high card"
+	}
+}
+
 func (e Evaluation) isFlush() bool {
 	var suit string
 	for _, card := range e.cardSet.cards {
@@ -227,6 +259,8 @@ func (e Evaluation) isStraight() bool {
 	// This needs to handle a wheel straight, ie A2345.
 
 	orderedRanks := e.cardSet.GetReverseOrderedNumericRanks()
+
+
 	previous := 0
 	for _, rank := range orderedRanks {
 		if previous == 0 {
@@ -511,11 +545,78 @@ func (d *Deck) getCard() *Card {
 	return d.cardSet.Pop()
 }
 
+func rankToNumericRank(stringRank string) int {
+	switch stringRank {
+	case "A":
+		return 14  // Aces are aces.
+	case "K":
+		return 13
+	case "Q":
+		return 12
+	case "J":
+		return 11
+	case "T":
+		return 10
+	default:
+		num, _ := strconv.Atoi(stringRank)
+		return num
+	}
+}
+
+func numericRankToRank(numericRank int) string {
+	switch numericRank {
+	case 14:
+		return "A"  // Aces are aces.
+	case 13:
+		return "K"
+	case 12:
+		return "Q"
+	case 11:
+		return "J"
+	case 10:
+		return "T"
+	default:
+		return strconv.Itoa(numericRank)
+	}
+}
+
+// This is in case you want to pull a specific card from the Deck so you
+// can deal it to a player for testing.  The cardValue should be
+// something like C3, HQ, or ST.
+func (d *Deck) getCardOfValue(cardValue string) *Card {
+	// TODO validate cardValue
+
+	suit := string([]rune(cardValue)[0])
+	numericRank := rankToNumericRank(string([]rune(cardValue)[1]))
+
+	requestedCard := NewCard(suit, numericRank)
+	cardNotFound := true
+	for i, c := range d.cardSet.cards {
+		card := *c
+		if card.IsSuited(requestedCard) && card.IsPaired(requestedCard) {
+			//fmt.Println("Found:", requestedCard, "at", i, card)
+			d.cardSet.cards = append(d.cardSet.cards[:i], d.cardSet.cards[i+1:]...)
+			cardNotFound = false
+			break
+		}
+	}
+
+	// Check that the above loop found the card.  It is possible that it
+	// has already been dealt.
+	if cardNotFound {
+		fmt.Println("The requested card,", cardValue, "was not found.  Perhaps it was already dealt.")
+		fmt.Println("Exiting.")
+		os.Exit(11)
+	}
+
+	return &requestedCard
+}
+
 type Community struct {
 	cards *CardSet
 }
 
-// Will eventually replace all the getStatus() methods.
+// Will eventually replace all the GetStatus() methods.
 func (c Community) String() string {
 	return c.cards.String()
 }
@@ -528,25 +629,7 @@ func NewCard(s string, nr int) Card {
 	var c Card
 	c.Suit = s
 	c.NumericalRank = nr
-
-	if nr == 14 {
-		c.Rank = "A" // Aces are aces.
-	}
-
-	switch nr {
-	case 14:
-		c.Rank = "A" // Aces are aces.
-	case 13:
-		c.Rank = "K"
-	case 12:
-		c.Rank = "Q"
-	case 11:
-		c.Rank = "J"
-	case 10:
-		c.Rank = "T"
-	default:
-		c.Rank = strconv.Itoa(nr)
-	}
+	c.Rank = numericRankToRank(nr)
 
 	return c
 }

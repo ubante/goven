@@ -207,8 +207,8 @@ type Table struct {
 	pot              Pot
 }
 
-// getStatus is more verbose than ToString.
-func (t *Table) getStatus() string {
+// GetStatus is more verbose than ToString.
+func (t *Table) GetStatus() string {
 	status := "------\n"
 	status += fmt.Sprintf("%s -- %d players left (game #%d)\n", t.bettingRound, len(t.players), t.gameCtr)
 
@@ -232,18 +232,19 @@ func (t *Table) getStatus() string {
 /*
 This happens at the start of tournaments.
 */
-func (t *Table) initialize() {
+func (t *Table) Initialize() {
 	t.gameCtr = 0
 
 	// https://flaviocopes.com/go-random/
 	rand.Seed(time.Now().UnixNano())
 	t.bustLog = make(map[int][]*Player)
+	t.community = NewCommunity()  // This is so we can print the Table status preflop.
 }
 
 /*
 This happens at the start of games.
 */
-func (t *Table) preset() {
+func (t *Table) Preset() {
 	t.gameCtr++
 
 	t.deck = NewDeck()
@@ -257,94 +258,63 @@ func (t *Table) preset() {
 	}
 }
 
-func (t *Table) insertPlayer(position int, p *Player) {
-	player := *p
+func (t *Table) insertPlayer(position int, p Player) {
 	length := len(t.players)
 	if position > length {
 		fmt.Println("You are trying to add to a position that is impossible.")
-		fmt.Println("The slice length is", length, "so the last p is at position", length-1)
+		fmt.Println("The slice length is", length, "so the last thang is at position", length-1)
 		fmt.Println("so your position,", position, "is impossible.")
 		os.Exit(9)
 	}
 
-	fmt.Println("insertPlayerStart:")
-	for _, pl := range t.players {
-		plp := *pl
-		fmt.Println(" ", plp.getName())
-	}
-
-	firstPlayerInSlice := *t.players[0]
-	lastPlayerInSlice := *t.players[length-1]
-
 	// If the position is at the front of the slice, do this.
 	if position == 0 {
-		fmt.Println("Adding to the front.")
-		lastPlayerInSlice.setNextPlayer(&player)
-		player.setPreviousPlayer(&lastPlayerInSlice)
-		player.setNextPlayer(&firstPlayerInSlice)
-		firstPlayerInSlice.setPreviousPlayer(&player)
-		//t.players[length-1].post = p
-		//p.pre = t.players[length-1]
-		//p.post = t.players[0]
-		//t.players[0].pre = p
-		t.players = append([]*Player{p}, t.players...)
+		fmt.Println("Adding", p.getName(), "to the front.")
+		lastThang := *t.players[length-1]
+		lastThang.setNextPlayer(&p)
+		p.setPreviousPlayer(t.players[length-1])
 
-		fmt.Println("insertPlayerEnd:")
-		for _, pl := range t.players {
-			plp := *pl
-			fmt.Println(" ", plp.getName())
-		}
+		firstThang := *t.players[0]
+		firstThang.setPreviousPlayer(&p)
+		p.setNextPlayer(t.players[0])
+
+		t.players = append([]*Player{&p}, t.players...)
 
 		return
 	}
 
 	// If the position is at the end of the slice, do this.
-	if position == len(t.players) {
-		fmt.Println("Adding to the end.")
-		lastPlayerInSlice.setNextPlayer(&player)
-		player.setPreviousPlayer(&lastPlayerInSlice)
-		player.setNextPlayer(&firstPlayerInSlice)
-		firstPlayerInSlice.setPreviousPlayer(&player)
-		//t.players[length-1].post = p
-		//p.pre = t.players[length-1]
-		//p.post = t.players[0]
-		//t.players[0].pre = p
-		t.players = append(t.players, p)
+	if position == length {
+		fmt.Println("Adding", p.getName(), "to the end.")
+		lastThang := *t.players[length-1]
+		lastThang.setNextPlayer(&p)
+		p.setPreviousPlayer(t.players[length-1])
 
-		fmt.Println("insertPlayerEnd:")
-		for _, pl := range t.players {
-			plp := *pl
-			fmt.Println(" ", plp.getName())
-		}
+		firstThang := *t.players[0]
+		firstThang.setPreviousPlayer(&p)
+		p.setNextPlayer(t.players[0])
+
+		t.players = append(t.players, &p)
 
 		return
 	}
 
 	// Otherwise, do this.
-	prevPlayerInSlice := *t.players[position-1]
-	nextPlayerInSlice := *t.players[position]
+	fmt.Println("Adding", p.getName(), "to position", position)
+	middlePre := *t.players[position-1]
+	middlePre.setNextPlayer(&p)
+	p.setPreviousPlayer(t.players[position-1])
 
-	fmt.Println("Adding to position", position)
-	prevPlayerInSlice.setNextPlayer(&player)
-	player.setPreviousPlayer(&prevPlayerInSlice)
-	player.setNextPlayer(&nextPlayerInSlice)
-	nextPlayerInSlice.setPreviousPlayer(&player)
-	//t.players[position-1].post = p
-	//p.pre = t.players[position-1]
-	//p.post = t.players[position]
-	//t.players[position].pre = p
-	t.players = append(t.players[:position], append([]*Player{p}, t.players[position:]...)...)
+	middlePost := *t.players[position]
+	middlePost.setPreviousPlayer(&p)
+	p.setNextPlayer(t.players[position])
 
-	fmt.Println("insertPlayerEnd:")
-	for _, pl := range t.players {
-		plp := *pl
-		fmt.Println(" ", plp.getName())
-	}
+	t.players = append(t.players[:position], append([]*Player{&p}, t.players[position:]...)...)
 
 	return
 }
 
-func (t *Table) addPlayer(player Player) {
+func (t *Table) AddPlayer(player Player) {
 	if len(t.players) == 0 {
 		player.setPreviousPlayer(&player)
 		player.setNextPlayer(&player)
@@ -353,57 +323,9 @@ func (t *Table) addPlayer(player Player) {
 	}
 
 	fmt.Println("=====================")
-	firstPlayer := *t.players[0]
-	fmt.Println("At the start of addPlayer... first player is:", firstPlayer.getName())
-	t.printLinkList(false, nil)
-	t.printLinkList(true, nil)
-
-	// Find where to put this new player.
 	index := rand.Intn(len(t.players) + 1) // Intn(x) returns [0,x-1)
-	// Mock
-	switch len(t.players) {
-	case 1:
-		fmt.Println("Inside the mock switch 1.")
-		index = 0
-	case 2:
-		fmt.Println("Inside the mock switch 2.")
-		index = 2
-	case 3:
-		fmt.Println("Inside the mock switch 3.")
-		os.Exit(9)
-	}
-	fmt.Printf("I am %s; random number: %d and current size is %d;", player.getName(), index, len(t.players))
-
-	t.insertPlayer(index, &player)
-
-	// The below goes on forever if we add to the end of t.players[].
-	// It could be a problem with printLinkList()
-	fmt.Println("After the addition:")
-	for i, pl := range t.players {
-		plDerefd := *pl
-		fmt.Printf("%d: %p <- %p -> %p\n", i, plDerefd.getPreviousPlayer(), pl, plDerefd.getNextPlayer())
-		/*
-0: 0xc042048420 <- 0xc042048340 -> 0xc0420483a0
-1: 0xc042048340 <- 0xc042048330 -> 0xc042048420
-2: 0xc042048470 <- 0xc042048420 -> 0xc042048480
-
-		 */
-	}
-
-
-	t.printLinkList(false, nil)
-	t.printLinkList(true, nil)
-
-
-
-	//initialPlayer := *t.players[0]
-	//lastPlayerPtr := t.players[len(t.players)-1]
-	//lastPlayer := *lastPlayerPtr
-	//lastPlayer.setNextPlayer(&player)
-	//player.setPreviousPlayer(lastPlayerPtr)
-	//player.setNextPlayer(t.players[0])
-	//initialPlayer.setPreviousPlayer(&player)
-	//t.players = append(t.players, &player)
+	//fmt.Printf("I am %s; random number: %d and current size is %d;", player.getName(), index, len(t.players))
+	t.insertPlayer(index, player)
 
 	return
 }
@@ -452,7 +374,7 @@ func (t Table) printLinkList(reverse bool, p *Player) {
 	} else {
 		fmt.Printf("%s <- ", player.getName())
 	}
-	time.Sleep(200 * time.Millisecond)
+	//time.Sleep(200 * time.Millisecond)
 
 	if reverse == false {
 		t.printLinkList(reverse, player.getNextPlayer())
@@ -504,9 +426,25 @@ func (t *Table) postBlinds() (table Table) {
 	return
 }
 
-func (t *Table) dealHoleCards() {
+func (t *Table) DealHoleCards() {
+	// This is a hack to give a certain player certain holecards.
+	//for _, p := range t.players {
+	//	player := *p
+	//	if player.getName() == "Otis" {
+	//		player.addHoleCard(*t.deck.getCardOfValue("HA"))
+	//		player.addHoleCard(*t.deck.getCardOfValue("CA"))
+	//		break
+	//	}
+	//}
+
 	for _, p := range t.players {
 		player := *p
+
+		// This is part of the above hack.
+		//if player.getName() == "Otis" {
+		//	continue
+		//}
+
 		player.addHoleCard(*t.deck.getCard())
 		player.addHoleCard(*t.deck.getCard())
 	}
@@ -592,7 +530,7 @@ func (t *Table) genericBet(firstBetter *Player) {
 	}
 
 	fmt.Println("After going around the table once, we have:")
-	fmt.Println(t.getStatus())
+	fmt.Println(t.GetStatus())
 
 	// There may be raises and re-raises so handle that.
 	for {
@@ -647,7 +585,7 @@ func (t *Table) moveBetsToPot() {
 	fmt.Println(t.pot)
 }
 
-func (t *Table) dealFlop() {
+func (t *Table) DealFlop() {
 	t.bettingRound = "FLOP"
 	for i := 1; i <= 3; i++ {
 		card := t.deck.getCard()
@@ -683,7 +621,7 @@ func (t *Table) payWinners() {
 
 		// Evaluate the players' hand strengths.
 		fmt.Println("Evaluating the hand of", player.getName())
-		hc := player.getHoleCards()
+		hc := player.getHoleCardsCardSet()
 		combinedCardSet := hc.Combine(*t.community.cards) // 7 cards.
 		combinedCardSet.FindBestHand()
 		fmt.Printf("%s's best hand is: %s\n", player.getName(), combinedCardSet.bestEval)
@@ -789,11 +727,11 @@ func (t *Table) payWinnersForSegment(segmentValue int, players []*Player) {
 
 		// I will pay the cost of reevaluating these hands so I don't
 		// have to Add more methods to the Player interface.
-		aphc := ap.getHoleCards()
-		combinedCardset := aphc.Combine(*t.community.cards)
-		combinedCardset.FindBestHand()
-		fmt.Printf("%s's best hand is: %s\n", ap.getName(), combinedCardset.bestEval)
-		thisEval := *combinedCardset.bestEval
+		aphc := ap.getHoleCardsCardSet()
+		combinedCardSet := aphc.Combine(*t.community.cards)
+		combinedCardSet.FindBestHand()
+		fmt.Printf("%s's best hand is: %s\n", ap.getName(), combinedCardSet.bestEval)
+		thisEval := *combinedCardSet.bestEval
 
 		if len(segmentWinningPlayers) == 0 {
 			segmentWinningPlayers = []Player{ap}
@@ -829,95 +767,98 @@ func (t *Table) payWinnersForSegment(segmentValue int, players []*Player) {
 	os.Exit(4)
 }
 
-func RunTournament() map[string]int {
+func RunTournament(tournamentNumber int) map[string]int {
 	var table Table
-	table.initialize()
+	table.Initialize()
 
 	temp := NewAllInAlwaysPlayer("Adam")
-	//temp.stack = 100 // To test Pot, we need two all-in short stack players.
-	table.addPlayer(&temp)
-	//temp1 := NewAllInAlwaysPlayer("Alma")
-	//temp1.stack = 125 // To test Pot, we need two all-in short stack players.
-	//table.addPlayer(&temp1)
+	table.AddPlayer(&temp)
 	tempCSP := NewCallingStationPlayer("Cali")
-	table.addPlayer(&tempCSP)
-	temp4 := NewGenericPlayer("Dale")
-	table.addPlayer(&temp4)
+	table.AddPlayer(&tempCSP)
 	temp6 := NewFoldingPlayer("Fred")
-	table.addPlayer(&temp6)
+	table.AddPlayer(&temp6)
 	testCTF := NewCallToFivePlayer("Carl")
-	table.addPlayer(&testCTF)
+	table.AddPlayer(&testCTF)
 	temp5 := NewGenericPlayer("Jenn")
-	table.addPlayer(&temp5)
-	tempStreetFlopper := NewStreetTestPlayer("Flow", "FLOP")
-	table.addPlayer(&tempStreetFlopper)
+	table.AddPlayer(&temp5)
+	//tempStreetFlopper := NewStreetTestPlayer("Flow", "FLOP")
+	//table.AddPlayer(&tempStreetFlopper)
 	testStretTurner := NewStreetTestPlayer("Turk", "TURN")
-	table.addPlayer(&testStretTurner)
-	testStreetRiverer := NewStreetTestPlayer("Rivv", "RIVER")
-	table.addPlayer(&testStreetRiverer)
+	table.AddPlayer(&testStretTurner)
+	//testStreetRiverer := NewStreetTestPlayer("Rivv", "RIVER")
+	//table.AddPlayer(&testStreetRiverer)
 	tempMinRaiser := NewMinRaisingPlayer("Ming")
-	table.addPlayer(&tempMinRaiser)
-	tempSMP5 := NewSklanskyMalmuthPlayer("Stan", 5)
-	table.addPlayer(&tempSMP5)
+	table.AddPlayer(&tempMinRaiser)
+	tempSMP1 := NewSklanskyMalmuthPlayer("Saul", 5)
+	table.AddPlayer(&tempSMP1)
+	//tempSMP5 := NewSklanskyMalmuthPlayer("Stan", 2)
+	//table.AddPlayer(&tempSMP5)
+	//tempSMMP5 := NewSklanskyMalmuthModifiedPlayer("Mits", 5)
+	//table.AddPlayer(&tempSMMP5)
+	tempSMMP6 := NewSklanskyMalmuthModifiedPlayer("Muts", 2)
+	table.AddPlayer(&tempSMMP6)
+	//tempOCP1 := NewOddsComputingPlayer("Otis", 2, 50)
+	tempOCP1 := NewOddsComputingPlayer("Odom", 5, 80)
+	tempOCP1.preFlopRaise = 3
+	tempOCP1.postFlopRaise = 0.5
+	tempOCP1.turnRaise = 1.0
+	tempOCP1.riverRaise = 2.0
+	table.AddPlayer(&tempOCP1)
+	//tempOCP2 := NewOddsComputingPlayer("Otis", 6, 70)
+	//tempOCP2.preFlopRaise = 3
+	//tempOCP2.postFlopRaise = 0.5
+	//tempOCP2.turnRaise = 1.0
+	//tempOCP2.riverRaise = 2.0
+	tempOCP3 := NewOddsComputingPlayer("Omar", 2, 70)
+	tempOCP3.preFlopRaise = 3
+	tempOCP3.postFlopRaise = 0.5
+	tempOCP3.turnRaise = 1.0
+	tempOCP3.riverRaise = 2.0
+	table.AddPlayer(&tempOCP3)
 	fmt.Print("\n\n")
 
 	// Set an initial small blind value.
 	table.defineBlinds(25)
 
 	fmt.Println(table.players)
-	fmt.Println(table.getStatus())
+	fmt.Println(table.GetStatus())
 
-	table.printLinkList(false, nil)
-	table.printLinkList(true, nil)
-	// Adam -> Cali -> Dale -> Fred -> Carl -> Jenn -> Flow -> Turk -> Rivv -> Ming -> Stan
-	// Adam <- Stan <- Ming <- Rivv <- Turk <- Flow <- Jenn <- Carl <- Fred <- Dale <- Cali
-	os.Exit(3)
-
-	//for i := 1; i <= 20; i++ {
 	for {
 		fmt.Println("============================")
-		table.preset()
-		fmt.Printf("This is game #%d.\n", table.gameCtr)
+		table.Preset()
+		fmt.Printf("This is game #%d of tournament #%d.\n", table.gameCtr, tournamentNumber)
+		tournamentGameString := fmt.Sprintf("{T%d|G%d}", tournamentNumber, table.gameCtr)
 		table.assignInitialButtonAndBlinds()
 		table.bettingRound = "PREFLOP"
 
 		table.postBlinds()
-		fmt.Println(table.getStatus())
-		table.dealHoleCards()
+		table.DealHoleCards()
+		fmt.Println(table.GetStatus())
 		table.preFlopBet()
 		table.moveBetsToPot()
-		fmt.Println(table.getStatus())
+		fmt.Println(table.GetStatus())
 
 		table.bettingRound = "FLOP"
-		fmt.Println("---------------------- Dealing the flop.")
-		table.dealFlop()
+		fmt.Println("---------------------- Dealing the flop", tournamentGameString)
+		table.DealFlop()
 		table.postPreFlopBet()
 		table.moveBetsToPot()
-		fmt.Println(table.getStatus())
+		fmt.Println(table.GetStatus())
 
 		table.bettingRound = "TURN"
-		fmt.Println("---------------------- Dealing the turn.")
+		fmt.Println("---------------------- Dealing the turn", tournamentGameString)
 		table.dealTurn()
 		table.postPreFlopBet()
 		table.moveBetsToPot()
-		fmt.Println(table.getStatus())
+		fmt.Println(table.GetStatus())
 
 		table.bettingRound = "RIVER"
-		fmt.Println("---------------------- Dealing the river.")
+		fmt.Println("---------------------- Dealing the river", tournamentGameString)
 		table.dealRiver()
-
-		// Mock the community cards for testing Evaluation()
-		//mockedCardSet := NewCommunity()
-		//mockedCardSet.Add(NewCard("H", 11))
-		//mockedCardSet.Add(NewCard("H", 6))
-		//mockedCardSet.Add(NewCard("C", 11))
-		//mockedCardSet.Add(NewCard("S", 11))
-		//mockedCardSet.Add(NewCard("C", 6))
-		//table.community = mockedCardSet
 
 		table.postPreFlopBet()
 		table.moveBetsToPot()
-		fmt.Println(table.getStatus())
+		fmt.Println(table.GetStatus())
 
 		fmt.Println("Finding and paying the winners.")
 		table.payWinners()
@@ -926,7 +867,7 @@ func RunTournament() map[string]int {
 		table.removeBustedPlayers()
 
 		fmt.Println("At the end of the game, the table looks like this:")
-		fmt.Println(table.getStatus())
+		fmt.Println(table.GetStatus())
 
 		// Look for a winner.
 		if len(table.players) == 1 {
@@ -934,12 +875,18 @@ func RunTournament() map[string]int {
 			break
 		}
 
+		// Increase the blind every 20 games.
+		if table.gameCtr % 20 == 0 {
+			currentSmallBlind := table.smallBlindValue
+			table.defineBlinds(currentSmallBlind *2)
+			fmt.Printf("After %d games, increasing small blind from $%d to $%d\n.", table.gameCtr,
+				currentSmallBlind, currentSmallBlind*2)
+		}
+
 		//time.Sleep(1 * time.Second)
+		//os.Exit(12)
 	}
 
-	fmt.Println("=============================================================")
-	fmt.Println("=============================================================")
-	fmt.Println("=============================================================")
 	fmt.Println()
 	winner := *table.players[0]
 	placings := make(map[string]int)
@@ -967,6 +914,7 @@ func RunTournament() map[string]int {
 	// real tournament, there are tie-breakers used when multiple
 	// players bust in the same game.  For now, I'll just assign ties.
 	sort.Sort(sort.Reverse(sort.IntSlice(sortedGameCtrs)))
+	fmt.Printf("place: 1: %s\n", winner.getName())
 	for _, rev := range sortedGameCtrs {
 		fmt.Printf("place: %d (round %d): ", place+1, rev)
 		for _, bustedPlayer := range table.bustLog[rev] {

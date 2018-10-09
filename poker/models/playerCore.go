@@ -24,7 +24,7 @@ type Player interface {
 	getStack() int
 	//addHoleCard(c models.Card)
 	addHoleCard(c Card)
-	getHoleCards() CardSet
+	getHoleCardsCardSet() CardSet
 	payBlind(blindAmount int)
 	checkHasFolded() bool
 	checkIsAllIn() bool
@@ -33,10 +33,13 @@ type Player interface {
 
 type GenericPlayer struct {
 	name           string
+	bankRoll	   int
+
+	// The below gets set before each tournament.
 	nextPlayer     *Player
 	previousPlayer *Player
 
-	// The below get preset after each game.
+	// The below get preset before each game.
 	holeCards HoleCards
 	stack     int
 	bet       int
@@ -51,7 +54,7 @@ func NewGenericPlayer(name string) GenericPlayer {
 	ecs := NewCardSet()
 	hc := HoleCards{cardSet: &ecs}
 	initialStack := 1000 // dollars
-	newPlayer := GenericPlayer{name, nil, nil, hc, initialStack, 0,
+	newPlayer := GenericPlayer{name, 0,nil, nil, hc, initialStack, 0,
 		false, false}
 	return newPlayer
 }
@@ -70,7 +73,7 @@ func (gp GenericPlayer) String() string {
 /*
 Preset before each game.
 
-Maybe use "prepare()" instead of "preset()" because the latter implies
+Maybe use "prepare()" instead of "Preset()" because the latter implies
 something you do afterwards.
 */
 func (gp *GenericPlayer) preset() {
@@ -127,7 +130,7 @@ func (gp *GenericPlayer) addHoleCard(c Card) {
 	gp.holeCards.Add(c)
 }
 
-func (gp *GenericPlayer) getHoleCards() CardSet {
+func (gp *GenericPlayer) getHoleCardsCardSet() CardSet {
 	return *gp.holeCards.cardSet
 }
 
@@ -172,13 +175,31 @@ func (gp *GenericPlayer) fold() {
 // like irrelevant semantics here.
 func (gp *GenericPlayer) raise(raiseAmount int) {
 	if gp.stack < raiseAmount {
-		fmt.Println("Player tried to raise more than its stack.  This is a fatal error.")
-		fmt.Println(gp)
+		fmt.Println(gp.getName(),"tried to raise more than its stack.  This is a fatal error.")
+		fmt.Printf("Stack: $%d, Raise: $%d\n", gp.stack, raiseAmount)
+		//fmt.Println(gp)
 		os.Exit(9)
+	}
+
+	// The below block may be redundant if this method was called from
+	// allIn() but it's best to have it in case raise() is called from
+	// a method that doesn't check if the player is all-in or not.
+	if raiseAmount == gp.stack {
+		gp.isAllIn = true
 	}
 
 	gp.bet += raiseAmount
 	gp.stack -= raiseAmount
+}
+
+// This is the safer alternative to gp.raise().
+func (gp *GenericPlayer) raiseUpTo(raiseAmount int) {
+	if raiseAmount >= gp.stack {
+		gp.allIn()
+		return
+	}
+
+	gp.raise(raiseAmount)
 }
 
 func (gp *GenericPlayer) allIn() {
