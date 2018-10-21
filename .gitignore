@@ -1,3 +1,4 @@
 .idea/*
 scratch*
-poker/history/history.txt
+/poker/history/history.txt
+**.txt
